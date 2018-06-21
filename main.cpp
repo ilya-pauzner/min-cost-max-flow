@@ -116,7 +116,7 @@ private:
     }
 
 public:
-    Graph(size_t _start, size_t _finish, size_t _n) : start(_start), finish(_finish), n(_n) {
+    Graph(size_t _start = 0, size_t _finish = 0, size_t _n = 0) : start(_start), finish(_finish), n(_n) {
         potential.resize(n);
     }
 
@@ -156,59 +156,57 @@ public:
 
     vector<vector<Edge> > decompose() {
         vector<vector<Edge> > answer;
-        auto Path = ford_bellman_path(true);
-        while (Path != bad_edge_vector) {
+        auto path = ford_bellman_path(true);
+        while (path != bad_edge_vector) {
             int diff = inf;
-            for (auto edge : Path) {
+            for (auto edge : path) {
                 diff = min(diff, edge.flow);
             }
-            for (auto edge : Path) {
+            for (auto edge : path) {
                 edges[edge.id].flow -= diff;
                 edges[edge.id ^ 1].flow += diff;
             }
-            answer.push_back(Path);
-            Path = dijkstra_path(true);
+            answer.push_back(path);
+            path = dijkstra_path(true);
         }
         return answer;
     }
 
 };
 
-Graph read(int* k) {
+Graph read(Graph* G, int* k) {
     freopen("brides.in", "r", stdin);
     freopen("brides.out", "w", stdout);
     size_t n, m;
     *k = 0;
     cin >> n >> m >> *k;
-    Graph G(0, n - 1, n);
+    *G = Graph(0, n - 1, n);
     for (int i = 0; i < m; ++i) {
         size_t a, b;
         int t;
         cin >> a >> b >> t;
         --a;
         --b;
-        G.addEdge(a, b, t, 1);
-        G.addEdge(b, a, t, 1);
+        G->addEdge(a, b, t, 1);
+        G->addEdge(b, a, t, 1);
     }
-    return G;
 }
 
-vector<vector<Edge> > solve(Graph* G, int k, double* flow) {
+vector<vector<Edge> > solve(vector<vector<Edge> >* answer, Graph* G, int k, double* flow) {
     *flow = G->flow(k);
     *flow /= k;
-    auto vec = G->decompose();
-    return vec;
+    *answer = G->decompose();
 }
 
 void write(const vector<vector<Edge> >& answer, int k, double flow) {
     cout << fixed << setprecision(20);
-
+    size_t edge_redundancy = 4;
     if (flow != -1 && answer.size() == k) {
         cout << flow << "\n";
         for (auto path : answer) {
             cout << path.size() << " ";
             for (auto edge : path) {
-                cout << edge.id / 4 + 1 << " ";
+                cout << edge.id / edge_redundancy + 1 << " ";
             }
             cout << "\n";
         }
@@ -218,9 +216,11 @@ void write(const vector<vector<Edge> >& answer, int k, double flow) {
 }
 
 int main() {
-    int k;
-    Graph G = read(&k);
-    double flow;
-    vector<vector<Edge> > answer = solve(&G, k, &flow);
+    int k = 0;
+    Graph G;
+    read(&G, &k);
+    double flow = 0;
+    vector<vector<Edge> > answer;
+    solve(&answer, &G, k, &flow);
     write(answer, k, flow);
 }
