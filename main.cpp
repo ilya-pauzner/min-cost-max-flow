@@ -42,7 +42,7 @@ private:
     const Edge bad_edge = {inf, inf, 0, 0, 0, inf};
     const vector<Edge> bad_edge_vector = {bad_edge};
 
-    vector<Edge> recover_path(vector<int>& distances, vector<Edge>& parent) {
+    vector<Edge> recoverPath(vector<int>& distances, vector<Edge>& parent) {
         potential = distances;
         vector<Edge> answer;
         size_t v = finish;
@@ -57,7 +57,7 @@ private:
         return answer;
     }
 
-    vector<Edge> ford_bellman_path(bool decomposition) {
+    vector<Edge> fbPath(bool decomposition) {
 
         vector<int> distances(n, inf);
         vector<Edge> parent(n, bad_edge);
@@ -76,10 +76,10 @@ private:
             }
         }
 
-        return recover_path(distances, parent);
+        return recoverPath(distances, parent);
     }
 
-    vector<Edge> dijkstra_path(bool decomposition) {
+    vector<Edge> dijkstraPath(bool decomposition) {
         vector<int> distances(n, inf);
         vector<Edge> parent(n, bad_edge);
         set<pair<int, int> > q;
@@ -112,7 +112,7 @@ private:
             }
         }
 
-        return recover_path(distances, parent);
+        return recoverPath(distances, parent);
     }
 
 public:
@@ -129,7 +129,7 @@ public:
 
     int flow(int flow_size) {
         int answer = 0;
-        auto Path = ford_bellman_path(false);
+        auto Path = fbPath(false);
         while (Path != bad_edge_vector && answer < flow_size) {
             int diff = inf;
             for (auto edge : Path) {
@@ -140,7 +140,7 @@ public:
                 edges[edge.id].flow += diff;
                 edges[edge.id ^ 1].flow -= diff;
             }
-            Path = dijkstra_path(false);
+            Path = dijkstraPath(false);
         }
         int res = 0;
         for (auto edge : edges) {
@@ -156,7 +156,7 @@ public:
 
     vector<vector<Edge> > decompose() {
         vector<vector<Edge> > answer;
-        auto path = ford_bellman_path(true);
+        auto path = fbPath(true);
         while (path != bad_edge_vector) {
             int diff = inf;
             for (auto edge : path) {
@@ -167,7 +167,7 @@ public:
                 edges[edge.id ^ 1].flow += diff;
             }
             answer.push_back(path);
-            path = dijkstra_path(true);
+            path = dijkstraPath(true);
         }
         return answer;
     }
